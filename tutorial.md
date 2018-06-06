@@ -391,10 +391,83 @@ https://en.bitcoin.it/wiki/Testnet 페이지의 Faucets 링크를 통해 다양�
 
 3) 특정 주소 신규 생성 후 해당 주소에 비트코인 전송 해보기 (Send Bitcoin to new specific address)  
 
-  * 다양한 Bitcoin 전송 명령들은 어떤 차이가 있을까? (sendtoaddress와 sendfrom 명령의 차이 등)  
+특정 account를 이용해 신규 주소를 생성해보자.
+chocoaddress0와 chocoaddress1 두개를 생성해보았다.  
+chocoaddress0생성
+```
+./bitcoin-cli getnewaddress chocoaddress0
+```
+결과:
+```
+2N5okm5K33z4nvHgXeVQhSrQ2CJiSYBk4ND
+```
+chocoaddress1생성
+```
+./bitcoin-cli getnewaddress chocoaddress0
+```
+결과:
+```
+2N8bsqtyC78TyaCLwviHuJaLkb7YQ9Sp5Bc
+```
+내 account의 주소 2개가 생성됨을 볼 수 있다.
+
+친구의 주소(2N7CvUsjcL5mD8or2BvMH7QY6vVd2VB5SZp)로 0.1 BTC를 보내보았다.
+```
+./bitcoin-cli sendtoaddress 2N7CvUsjcL5mD8or2BvMH7QY6vVd2VB5SZp 0.1
+```
+결과:
+```
+18b0a7a90e93962614f0c86f530802a22782c9c868eee0322542744507e6f8cc
+```
+해당 transaction의 txid가 출력된다.
+
+이 txid를 이용해 [bitcoin browser](https://live.blockcypher.com/btc-testnet/)에서 조회 가능하다
+조회 결과:
+
+![sendtoaddress](./img/sendtoaddress.png)
+
+위 txid 조회 결과에서 보듯이 내가 보유한 UTXO들을 모아 전송할 금액인 0.1BTC를 구성한 후 친구주소로 0.1BTC와 수수료인 0.0156BTC를 전송하는 모습을 볼 수 있다.  
+
+
+이처럼, sendtoaddres는 수신자의 주소와 보낼금액을 입력하여 전송하게 된다.
+sendtoaddress명령은 내 서버 내의 account에 상관 없이 server가 가지고 있는 BTC 총합(UTXO의 총합)이 충분하다면 언제나 거래가 성공한다.
+
+* 비트코인을 전송하는 명령 중 move나 sendfrom이라는 명령어도 있는데 차이점은 무엇일까? 아래에서 살펴봅시다.
+
+*sendfrom* 명령어 사용해보기
+sendfrom은 특정 account에서 destination address로 BTC를 전송하는 명령어이다.
+따라서 해당 account에 충분한 BTC가 없을 경우 전송이 실패된다.
+
+![sendfrom fail case](./img/sendfrom_fail.png)
+
+move 명령은 내가 가진 account 간에 BTC를 옮기는 명령어 이다.
+일단 위에서 fail한 account의 잔고를 확인해보면 0임을 알 수 있다.  
+
+![get empty balance](./img/getbalance_chocoaddress1_empty.png)
+
+move 명령을 이용해 여유가 있는 chocoaddress0 account에서 chocoaddress1 account로 0.2BTC를 옮긴 후 잔고를 확인해보자.
+
+![move](./img/move.png)
+![get moved balance](./img/getbalance_chocoaddress1_0.2.png)
+
+0.2BTC가 옮겨졌음을 확인했으니, 이제 다시 sendfrom으로 chocoaddress1에서 친구에게 코인을 전송해보자
+
+![sendfrom true case](./img/sendfrom_true.png)
+
+해당 트랜잭션의 txid가 출력된다.
 
 4) transaction거래 정보 확인
   * gettransaction과 getrawtransaction 명령의 차이
+gettransaction명령을 사용해보자.  
+
+![gettransaction](./img/gettransaction.png)
+해당 transaction이 포함하고 있는 상세한 정보와 hash값을 볼 수 있다.
+
+getrawtransaction 명령을 사용해보자
+
+![getrawtransaction](./img/getrawtransaction.png)
+해당 transaction의 정보의 hash값을 볼 수 있다.
+
 
 5) 다른 네티워크 노드 전파를 통한 트랜잭션 진행과정 살펴보기
 
@@ -403,16 +476,15 @@ https://en.bitcoin.it/wiki/Testnet 페이지의 Faucets 링크를 통해 다양�
     * testnet은 [여기](https://live.blockcypher.com/btc-testnet/) 또는 [testnet.blockchain.info](https://testnet.blockchain.info/)에서 확인 가능
 
 6) confirmations란 뭘까? (What is confirmations?)
+confirmation을 이해하기 전에 우리는 거래의 원래와 검증 과정을 이해할 필요가 있다.
+
 
 7) UTXO(Unspent Transaction Output)란 뭘까? (What is UTXO?)
 
-### 소설 써보기
-A가 B에게 비트코인 XXBTC를 보내려고 하는데,  
-A와 B의 주소는 어떻게 생성해놓고  
-A의 지갑엔 얼마의 잔고를 넣어둬야 할지  
-Bitcoin 전송 명령 중 어떤걸 사용했는지  
-전송한 트랜잭션 결과는 어떻게 확인해야 하는지  
-트랜잭션 결과 후에 A와 B의 잔고는 어떻게 확인해야 할지
+* UTXO는 특정 지갑에서 소유하고 있는 '비트코인 덩어리' 또는 그 금액만큼의 '비트코인 지폐'라고 생각하면 쉽다.  
+예를 들어 내가 처음으로 1BTC를 누군가에게 받았다. 그럼 이 거래의 UTXO는 1BTC 지폐로 볼 수 있다.
+이후 내가 0.5BTC짜리 물건을 사고 지불해야 할 때, 이 1BTC지폐를 사용해 0.5BTC를 지불하고 거스름돈 0.5BTC를 돌려받는다. 그리고 거슬러받은 0.5BTC는 나에게 새로운 UTXO가 되는 것이다.  
+*만원짜리 지폐를 찢어서 사용할 수 없는 것처럼 UTXO를 쪼개서 사용하지 않고 사용가능한 UTXO를 지갑에서 찾아 입력값에 넣은 다음 출력값으로 잔액을 되돌려 받는 형식인 것이다.*
 
 ### JSON-RPC로 명령해보기
   * 입금 주소 생성(getnewaddress)
@@ -422,8 +494,9 @@ Bitcoin 전송 명령 중 어떤걸 사용했는지
 
 ### Bitcoin core Programmatic Interface
 사용하기 다소 복잡한 JSON-RPC명령을 다양한 언어를 이용해 간편화 할 수 있다.
+-공부중-
 
 ### 참고
 * [Bitcoin Wiki](https://en.bitcoin.it/wiki/Running_Bitcoin)
 * [bitcoin-cli 명령](https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_calls_list)
-*
+* [Bitcoin 거래 원리와 과정](https://steemit.com/kr/@easyblockchain/2odxha-1)
