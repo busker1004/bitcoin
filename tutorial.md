@@ -377,6 +377,13 @@ tail -f /home/username/.bitcoin/testnet3/debug.log
 ### 테스트넷으로 비트코인을 가지고 놀아보자 (Let's play with bitcoin in testnet)
 
 1) 비트코인 입금 주소 생성 (make new address of Bitcoin)
+```
+./bitcoin-cli getnewaddress
+```
+결과:
+```
+2N5okm5K33z4nvHgXeVQhSrQ2CJiSYBk4ND
+```
 
 2) Bitcoin Faucet을 통한 테스트 코인 수령 (How can I get Bitcoin test coin?)
 https://en.bitcoin.it/wiki/Testnet 페이지의 Faucets 링크를 통해 다양한 Faucet에서 테스트용 비트코인을 얻을 수 있다.
